@@ -11,18 +11,17 @@ const {
   fetchReviews,
   fetchItemReviews,
   fetchSingleReview,
+  fetchMyComments,
   fetchMyReviews,
   updateReview,
   deleteReview,
   fetchReviewComments,
   deleteReviewComment,
   fetchItem,
-  //   deleteReview,
-  //     updateComment,
-  //     updateReview,
+  updateComment,
   authenticate,
   findUserByToken,
-  //     createUserAndGenerateToken,
+  deleteComment,
 } = require("./db");
 
 //create a service using express
@@ -193,6 +192,48 @@ app.post(
           itemsId: req.params.id,
         })
       );
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+//get all comments for MY review------------REQUIRED ROUTE: 13
+app.get("/api/comments/me", isLoggedIn, async (req, res, next) => {
+  try {
+    res.send(await fetchMyComments(req.user.id));
+  } catch (error) {
+    next(error);
+  }
+});
+
+//allow logged in user to edit a comment they created------------REQUIRED ROUTE: 14
+app.put(
+  "/api/users/:userId/comments/:id",
+  isLoggedIn,
+  async (req, res, next) => {
+    try {
+      res.send(
+        await updateComment({
+          ...req.body,
+          userId: req.user.id,
+          id: req.params.id,
+        })
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+//allow logged in user to delete a comment they created------------REQUIRED ROUTE: 15
+app.delete(
+  "/api/users/:userId/comments/:id",
+  isLoggedIn,
+  async (req, res, next) => {
+    try {
+      await deleteComment({ id: req.params.id, userId: req.user.id });
+      res.sendStatus(204);
     } catch (error) {
       next(error);
     }

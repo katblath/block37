@@ -156,6 +156,19 @@ const deleteReviewComment = async ({ id, userId }) => {
     `;
   await client.query(SQL, [id]);
 };
+
+//update a COMMENT
+const updateComment = async ({ comment, userId, id }) => {
+  const SQL = `--sql
+    UPDATE reviewComments
+    SET comment = $1
+    WHERE userId = $2 and id = $3
+    RETURNING *;
+    `;
+  const response = await client.query(SQL, [comment, userId, id]);
+  return response.rows[0];
+};
+
 //authenticate user
 const authenticate = async ({ username, password }) => {
   const SQL = `--sql
@@ -280,6 +293,26 @@ fetchMyReviews = async (userId) => {
   return response.rows;
 };
 
+//get all my comments and the dependent reviewId and subdependent itemId dont matter
+fetchMyComments = async (userId) => {
+  const SQL = `--sql
+    SELECT * FROM reviewComments
+    WHERE userId = $1;
+    `;
+  const response = await client.query(SQL, [userId]);
+  return response.rows;
+};
+
+//delete a comment that I created
+const deleteComment = async ({ id, userId }) => {
+  const SQL = `--sql
+    DELETE FROM reviewComments
+    WHERE id = $1 and userId = $2
+    RETURNING *;
+    `;
+  await client.query(SQL, [id, userId]);
+};
+
 module.exports = {
   client,
   createTables,
@@ -293,15 +326,14 @@ module.exports = {
   fetchItemReviews,
   fetchSingleReview,
   fetchReviewComments,
+  fetchMyComments,
   deleteReviewComment,
   fetchItem,
   fetchMyReviews,
   updateReview,
   deleteReview,
-  //   deleteReview,
-  //     updateComment,
-  //     updateReview,
+  updateComment,
   authenticate,
   findUserByToken,
-  //     createUserAndGenerateToken,
+  deleteComment,
 };
